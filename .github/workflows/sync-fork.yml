@@ -1,0 +1,39 @@
+name: Sync fork with upstream
+
+# Keeps this fork level with anuraghazra/github-readme-stats so the Vercel
+# deployment (github-readme-stats-tom613951) tracks upstream automatically.
+#
+# Schedule-only intent: the fork carries no local commits, so every sync is a
+# fast-forward. If local commits are ever added, switch to the GitHub web UI
+# ("Sync fork") which surfaces the divergence instead of overwriting silently.
+
+on:
+  schedule:
+    - cron: '17 4 * * *'   # daily 04:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream-master
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fast-forward master from upstream
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: |
+          gh api --method POST \
+            repos/${{ github.repository }}/merge-upstream \
+            -f branch=master
+
+      - name: Report result
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: |
+          gh api "repos/anuraghazra/github-readme-stats/compare/master...${{ github.repository }}:master" \
+            --jq '"status=\(.status) ahead=\(.ahead_by) behind=\(.behind_by)"'
