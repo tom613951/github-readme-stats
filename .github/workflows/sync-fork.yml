@@ -3,8 +3,7 @@ name: Sync fork with upstream
 # Keeps this fork level with anuraghazra/github-readme-stats so the Vercel
 # deployment (github-readme-stats-tom613951) tracks upstream automatically.
 #
-# Uses the built-in GITHUB_TOKEN - no repository secret required. The default
-# token can push to this repository, which is all merge-upstream needs.
+# Uses the built-in GITHUB_TOKEN - no repository secret required.
 #
 # Schedule-only intent: the fork carries no local commits, so every sync is a
 # fast-forward. If local commits are ever added, switch to the GitHub web UI
@@ -33,10 +32,3 @@ jobs:
           gh api --method POST \
             repos/${{ github.repository }}/merge-upstream \
             -f branch=master
-
-      - name: Report sync state
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh api "repos/anuraghazra/github-readme-stats/compare/master...${{ github.repository }}:master" \
-            --jq '"status=\(.status) ahead=\(.ahead_by) behind=\(.behind_by)"'
